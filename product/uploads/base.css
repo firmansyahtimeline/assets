@@ -94,7 +94,7 @@ transition: max-height 0.3s ease;
 
 .cart-top.active .cart-body {
 
-    max-height: 70vh;
+    max-height: 60vh;
     /*max-height: 300px;*/
     /* 🔥 LIMIT HEIGHT */
     overflow-y: auto;
