@@ -1,0 +1,229 @@
+:root {
+    /* ===== MODERN DARK THEME ===== */
+    --bg-main: #0b0f14;
+    --bg-soft: #11161d;
+    --bg-card: rgba(20, 25, 32, 0.92);
+    --bg-card-2: rgba(28, 34, 42, 0.96);
+    --bg-input: #0f141a;
+    --bg-overlay: rgba(0, 0, 0, 0.65);
+
+    --text-main: #e5e7eb;
+    --text-soft: #9ca3af;
+    --text-muted: #6b7280;
+    --text-dark: #ffffff;
+
+    --dark-1: #111827;
+    --dark-2: #1f2937;
+    --dark-3: #374151;
+    --dark-4: #4b5563;
+
+    --accent: #3b82f6;
+    --accent-2: #60a5fa;
+    --accent-dark: #1d4ed8;
+
+    --border: rgba(255, 255, 255, 0.06);
+    --border-strong: rgba(255, 255, 255, 0.12);
+
+    --shadow-soft: 0 10px 25px rgba(0, 0, 0, 0.45);
+    --shadow-dark: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+    --gradient-dark: linear-gradient(135deg, #0f172a 0%, #111827 45%, #1f2937 100%);
+    --gradient-soft: linear-gradient(135deg, #11161d 0%, #1b222c 50%, #2a3340 100%);
+}
+
+/* GLOBAL */
+html,
+body {
+    background: radial-gradient(circle at top, #111827 0%, #0b0f14 50%, #05070a 100%);
+    color: var(--text-main);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Bubble */
+.bubble {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Header */
+header,
+.hero-slider {
+    background: var(--gradient-dark);
+}
+
+.hero-slider .slide::after {
+    background: linear-gradient(to top, rgba(0, 0, 0, .75), rgba(0, 0, 0, .25));
+}
+
+.caption h1,
+.caption p {
+    color: #fff;
+}
+
+/* Cart */
+.cart-top {
+    background: rgba(10, 14, 18, 0.9);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(8px);
+}
+
+.cart-header {
+    background: var(--gradient-soft);
+    color: #fff;
+}
+
+.cart-body {
+    color: var(--text-main);
+}
+
+/* Inputs */
+input,
+textarea,
+select {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Tabs */
+.tab {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-soft);
+    border: 1px solid var(--border);
+}
+
+.tab.active {
+    background: var(--gradient-soft);
+    color: #fff;
+}
+
+/* Product card */
+.product-card {
+    background: linear-gradient(180deg, #11161d, #0f141a);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-dark);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--border-strong);
+}
+
+.product-card img {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Text highlight */
+.price,
+.total,
+.rating-score {
+    color: var(--accent-2);
+}
+
+/* Buttons */
+button,
+.qty-btn {
+    background: var(--gradient-soft);
+    color: #fff;
+    border: 1px solid var(--border);
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.remove-btn {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+/* Modal */
+.modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.product-modal {
+    background: linear-gradient(180deg, #11161d, #0b0f14);
+    color: var(--text-main);
+}
+
+/* Footer */
+.footer-pro {
+    background: #0b0f14;
+    border-top: 1px solid var(--border);
+}
+
+.footer-section {
+    background: #11161d;
+    border: 1px solid var(--border);
+}
+
+/* Table */
+#riwayat_container th {
+    background: #1f2937;
+    color: #fff;
+}
+
+#riwayat_container td {
+    border: 1px solid var(--border);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar-thumb {
+    background: #374151;
+}
+
+/* Timeline */
+.timeline {
+    border-left: 3px solid #374151;
+}
+
+.timeline_item.done::before {
+    background: var(--accent);
+}
+
+/* Links */
+a {
+    color: var(--accent-2);
+}
+
+/* Buttons reusable */
+.btn-dark {
+    background: #111827;
+    color: #fff;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* SCROLL HINT */
+.scroll_hint {
+    position: fixed;
+    left: 14px;
+    bottom: 24px;
+    padding: 10px 14px;
+    border-radius: 999px;
+
+    background: rgba(15, 20, 26, 0.9);
+    border: 1px solid var(--border);
+    color: #fff;
+
+    box-shadow: var(--shadow-soft);
+}
+
+.scroll_hint_arrow {
+    background: var(--accent);
+    color: #fff;
+}
