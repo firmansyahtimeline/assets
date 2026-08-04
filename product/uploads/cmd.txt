@@ -1,0 +1,9 @@
+ffmpeg -framerate 0.5 -i %03d.jpg \
+-vf "scale=540:960" \
+-c:v libx264 \
+-crf 18 \
+-preset slow \
+-pix_fmt yuv420p \
+-r 30 \
+-movflags +faststart \
+output.mp4
