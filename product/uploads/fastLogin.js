@@ -224,7 +224,7 @@
     // the WhatsApp sender by the server webhook, so no number input is needed.
     if (fast_login_state === "login") {
       content.innerHTML = `
-        <p>Tekan tombol di bawah, lalu kirim kode melalui WhatsApp.</p>
+        <p>Anda harus masuk untuk melanjutkan berbelanja. Tekan tombol di bawah, lalu kirim kode melalui WhatsApp.</p>
         <button id="req">Masuk dengan WhatsApp</button>
       `;
 
