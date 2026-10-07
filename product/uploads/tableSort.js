@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Table Multi Sort
 // @namespace    table.sort.multi
-// @version      1.2
+// @version      1.3
 // @description  Click header to sort table ASC/DESC with multi-column support. Print/Map batch always POST for short-link tokens.
 // @match        *://*/*
 // @grant        none
@@ -373,8 +373,34 @@ function createPrintBatchButton(){
         };
     };
 
-    // Insert button before table
+    // Insert Print Batch button before table
     table.parentNode.insertBefore(btn, table);
+
+    // Dedicated Show in Map button (always POST → short-link token)
+    if (!table.dataset.mapBatchReady) {
+        table.dataset.mapBatchReady = "1";
+
+        const mapBtn = document.createElement("button");
+        mapBtn.textContent = "Show in Map";
+        mapBtn.style.margin = "4px";
+        mapBtn.style.padding = "4px 10px";
+        mapBtn.style.fontSize = "12px";
+
+        mapBtn.onclick = function () {
+            const batchData = buildVisibleBatchData();
+            const uniqueCodes = batchData.codes;
+
+            if (!uniqueCodes.length) {
+                alert("No codes found.");
+                return;
+            }
+
+            // Always POST → server generates short-link token → redirects to ?t=...
+            openBatchMap(uniqueCodes);
+        };
+
+        table.parentNode.insertBefore(mapBtn, table);
+    }
 }
 function createPrintButton(){
 
@@ -698,23 +724,47 @@ box.style.maxHeight="80%";
 box.style.overflow="auto";
 box.style.minWidth="400px";
 
+let totalQty = 0;
+let totalSubtotal = 0;
+let itemCount = 0;
+
+for (let id in data) {
+    let d = data[id];
+    itemCount += 1;
+    totalQty += Number(d.qty) || 0;
+    totalSubtotal += Number(d.subtotal) || 0;
+}
+
 let html = "<h3>Item Summary</h3>";
+html += "<div style='margin-bottom:10px;line-height:1.5'>";
+html += "<div>Items: <b>" + itemCount.toLocaleString() + "</b></div>";
+html += "<div>Total Qty: <b>" + totalQty.toLocaleString() + "</b></div>";
+html += "<div>Summary Total: <b>" + totalSubtotal.toLocaleString() + "</b></div>";
+html += "</div>";
 html += "<table border='1' style='border-collapse:collapse;width:100%'>";
 html += "<tr><th>Item ID</th><th>Item</th><th>Total Qty</th><th>Price</th><th>Total Subtotal</th></tr>";
 
 for(let id in data){
 
 let d = data[id];
+let unitPrice = d.qty ? (d.subtotal / d.qty) : 0;
 
 html += "<tr>";
 html += "<td>"+id+"</td>";
 html += "<td>"+d.item+"</td>";
 html += "<td>"+d.qty+"</td>";
-html += "<td>"+d.subtotal/d.qty+"</td>";
+html += "<td>"+unitPrice.toLocaleString()+"</td>";
 html += "<td>"+d.subtotal.toLocaleString()+"</td>";
 html += "</tr>";
 
 }
+
+html += "<tr style='font-weight:bold;background:#f3f4f6'>";
+html += "<td colspan='2'>TOTAL</td>";
+html += "<td>" + totalQty.toLocaleString() + "</td>";
+html += "<td></td>";
+html += "<td>" + totalSubtotal.toLocaleString() + "</td>";
+html += "</tr>";
 
 html += "</table><br>";
 
