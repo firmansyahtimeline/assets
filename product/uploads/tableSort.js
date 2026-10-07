@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Universal Table Multi Sort
 // @namespace    table.sort.multi
-// @version      1.3
+// @version      1.4
 // @description  Click header to sort table ASC/DESC with multi-column support. Print/Map batch always POST for short-link tokens.
 // @match        *://*/*
 // @grant        none
@@ -699,76 +699,105 @@ createReset();
 createSummary();
 createPrintButton();
 createPrintBatchButton();
+function formatMoney(n){
+    const value = Number(n) || 0;
+    return value.toLocaleString();
+}
+
 function showModal(data){
 
 let modal = document.createElement("div");
-
-modal.style.position="fixed";
-modal.style.top="0";
-modal.style.left="0";
-modal.style.width="100%";
-modal.style.height="100%";
-modal.style.background="rgba(0,0,0,0.7)";
-modal.style.display="flex";
-modal.style.alignItems="center";
-modal.style.justifyContent="center";
-modal.style.zIndex="9999";
+modal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+`;
 
 let box = document.createElement("div");
-
-box.style.background="white";
-box.style.color="black";
-box.style.padding="20px";
-box.style.borderRadius="8px";
-box.style.maxHeight="80%";
-box.style.overflow="auto";
-box.style.minWidth="400px";
+box.style.cssText = `
+    background: #fff;
+    color: #000;
+    padding: 16px;
+    border-radius: 8px;
+    width: min(90vw, 720px);
+    max-height: 85vh;
+    overflow: auto;
+    font-size: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+`;
 
 let totalQty = 0;
 let totalSubtotal = 0;
 let itemCount = 0;
+const rows = [];
 
 for (let id in data) {
-    let d = data[id];
+    let d = data[id] || {};
+    const qty = Number(d.qty) || 0;
+    // Prefer stored unit price; otherwise derive from subtotal/qty
+    let unitPrice = Number(d.price);
+    if (!isFinite(unitPrice) || unitPrice <= 0) {
+        unitPrice = qty > 0 ? (Number(d.subtotal) || 0) / qty : 0;
+    }
+    // Recalculate line subtotal from qty * unit price when possible
+    let lineSubtotal = Number(d.subtotal) || 0;
+    if (qty > 0 && unitPrice > 0) {
+        lineSubtotal = qty * unitPrice;
+    }
+
     itemCount += 1;
-    totalQty += Number(d.qty) || 0;
-    totalSubtotal += Number(d.subtotal) || 0;
+    totalQty += qty;
+    totalSubtotal += lineSubtotal;
+
+    rows.push({
+        id: id,
+        item: d.item || "",
+        qty: qty,
+        price: unitPrice,
+        subtotal: lineSubtotal
+    });
 }
 
-let html = "<h3>Item Summary</h3>";
-html += "<div style='margin-bottom:10px;line-height:1.5'>";
+let html = "<h3 style='margin-top:0'>Item Summary</h3>";
+html += "<div style='margin-bottom:12px;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;line-height:1.6'>";
 html += "<div>Items: <b>" + itemCount.toLocaleString() + "</b></div>";
 html += "<div>Total Qty: <b>" + totalQty.toLocaleString() + "</b></div>";
-html += "<div>Summary Total: <b>" + totalSubtotal.toLocaleString() + "</b></div>";
+html += "<div>Summary Total: <b>" + formatMoney(totalSubtotal) + "</b></div>";
 html += "</div>";
-html += "<table border='1' style='border-collapse:collapse;width:100%'>";
-html += "<tr><th>Item ID</th><th>Item</th><th>Total Qty</th><th>Price</th><th>Total Subtotal</th></tr>";
+html += "<table style='border-collapse:collapse;width:100%;background:#fff;color:#000'>";
+html += "<thead><tr style='background:#e2e8f0'>";
+html += "<th style='border:1px solid #cbd5e1;padding:6px 8px;text-align:left;background:#e2e8f0;color:#000'>Item ID</th>";
+html += "<th style='border:1px solid #cbd5e1;padding:6px 8px;text-align:left;background:#e2e8f0;color:#000'>Item</th>";
+html += "<th style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#e2e8f0;color:#000'>Total Qty</th>";
+html += "<th style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#e2e8f0;color:#000'>Price</th>";
+html += "<th style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#e2e8f0;color:#000'>Total Subtotal</th>";
+html += "</tr></thead><tbody>";
 
-for(let id in data){
+rows.forEach(function (row) {
+    html += "<tr style='background:#fff;color:#000'>";
+    html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;background:#fff;color:#000'>" + row.id + "</td>";
+    html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;background:#fff;color:#000'>" + row.item + "</td>";
+    html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#fff;color:#000'>" + row.qty.toLocaleString() + "</td>";
+    html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#fff;color:#000'>" + formatMoney(row.price) + "</td>";
+    html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#fff;color:#000'>" + formatMoney(row.subtotal) + "</td>";
+    html += "</tr>";
+});
 
-let d = data[id];
-let unitPrice = d.qty ? (d.subtotal / d.qty) : 0;
-
-html += "<tr>";
-html += "<td>"+id+"</td>";
-html += "<td>"+d.item+"</td>";
-html += "<td>"+d.qty+"</td>";
-html += "<td>"+unitPrice.toLocaleString()+"</td>";
-html += "<td>"+d.subtotal.toLocaleString()+"</td>";
+html += "<tr style='font-weight:bold;background:#f1f5f9;color:#000'>";
+html += "<td colspan='2' style='border:1px solid #cbd5e1;padding:6px 8px;background:#f1f5f9;color:#000'>TOTAL</td>";
+html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#f1f5f9;color:#000'>" + totalQty.toLocaleString() + "</td>";
+html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;background:#f1f5f9;color:#000'></td>";
+html += "<td style='border:1px solid #cbd5e1;padding:6px 8px;text-align:right;background:#f1f5f9;color:#000'>" + formatMoney(totalSubtotal) + "</td>";
 html += "</tr>";
 
-}
-
-html += "<tr style='font-weight:bold;background:#f3f4f6'>";
-html += "<td colspan='2'>TOTAL</td>";
-html += "<td>" + totalQty.toLocaleString() + "</td>";
-html += "<td></td>";
-html += "<td>" + totalSubtotal.toLocaleString() + "</td>";
-html += "</tr>";
-
-html += "</table><br>";
-
-html += "<button id='closeSummary'>Close</button>";
+html += "</tbody></table>";
+html += "<div style='margin-top:12px;text-align:right'>";
+html += "<button id='closeSummary' style='padding:6px 12px'>Close</button>";
+html += "</div>";
 
 box.innerHTML = html;
 
@@ -890,31 +919,64 @@ function createSummary(){
                 cells[index.item]
                 ?.innerText.trim();
 
-            let qty = parseInt(
-                (
-                    cells[index.qty]
-                    ?.innerText || ""
-                ).replace(/[^0-9]/g,"")
-            ) || 0;
+            function parseAmount(raw) {
+                let s = String(raw || "").trim();
+                if (!s) return 0;
+                // Keep digits, separators, minus
+                s = s.replace(/[^0-9.,-]/g, "");
+                if (!s) return 0;
 
-            let sub = parseInt(
-                (
-                    cells[index.subtotal]
-                    ?.innerText || ""
-                )
-                .replace(/\./g,"")
-                .replace(/[^0-9]/g,"")
-            ) || 0;
+                const hasComma = s.indexOf(",") !== -1;
+                const hasDot = s.indexOf(".") !== -1;
 
-            // Fallback subtotal
-            if(!sub && index.price !== undefined){
-                let price = parseFloat(
-                    (
-                        cells[index.price]
-                        ?.innerText || ""
-                    ).replace(/[^0-9.-]/g,"")
-                ) || 0;
+                if (hasComma && hasDot) {
+                    // Decide decimal separator by last occurrence
+                    if (s.lastIndexOf(",") > s.lastIndexOf(".")) {
+                        // 1.234.567,89
+                        s = s.replace(/\./g, "").replace(",", ".");
+                    } else {
+                        // 1,234,567.89
+                        s = s.replace(/,/g, "");
+                    }
+                } else if (hasComma) {
+                    // 1234,56 or 1.234 style with comma thousands — treat last comma group as decimal if 1-2 digits
+                    if (/,-?\d{1,2}$/.test(s) || /,\d{1,2}$/.test(s)) {
+                        s = s.replace(/\./g, "").replace(",", ".");
+                    } else {
+                        s = s.replace(/,/g, "");
+                    }
+                } else if (hasDot) {
+                    // 1234.56 or 1.234.567
+                    const parts = s.split(".");
+                    if (parts.length > 2) {
+                        // thousand separators
+                        s = parts.join("");
+                    }
+                    // else keep as decimal
+                }
 
+                const n = parseFloat(s);
+                return isFinite(n) ? n : 0;
+            }
+
+            let qty = parseAmount(
+                cells[index.qty]?.innerText || ""
+            );
+            qty = Math.round(qty) || 0;
+
+            let price = 0;
+            if (index.price !== undefined) {
+                price = parseAmount(cells[index.price]?.innerText || "");
+            }
+
+            let sub = parseAmount(
+                cells[index.subtotal]?.innerText || ""
+            );
+
+            // Recalculate subtotal from price * qty when available
+            if (price > 0 && qty > 0) {
+                sub = price * qty;
+            } else if (!sub && price > 0 && qty > 0) {
                 sub = price * qty;
             }
 
@@ -924,12 +986,17 @@ function createSummary(){
                 map[itemId] = {
                     item: item,
                     qty: 0,
-                    subtotal: 0
+                    subtotal: 0,
+                    price: price || 0
                 };
             }
 
             map[itemId].qty += qty;
             map[itemId].subtotal += sub;
+            // Keep a representative unit price (last non-zero, or weighted later in modal)
+            if (price > 0) {
+                map[itemId].price = price;
+            }
         });
 
         showModal(map);
