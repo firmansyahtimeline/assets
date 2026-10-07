@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Universal Table Multi Sort
 // @namespace    table.sort.multi
-// @version      1.1
-// @description  Click header to sort table ASC/DESC with multi-column support
+// @version      1.2
+// @description  Click header to sort table ASC/DESC with multi-column support. Print/Map batch always POST for short-link tokens.
 // @match        *://*/*
 // @grant        none
 // ==/UserScript==
@@ -207,6 +207,35 @@ function createPrintBatchButton(){
             .filter(Boolean);
     }
 
+    /** Always POST so the server can create a short-link token and redirect. */
+    function postBatchAction(action, fields, target) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = action;
+        if (target) {
+            form.target = target;
+        }
+        form.style.display = "none";
+
+        Object.keys(fields).forEach(function (key) {
+            const value = fields[key];
+            if (value === undefined || value === null) {
+                return;
+            }
+            const input = document.createElement("textarea");
+            input.name = key;
+            input.value = String(value);
+            form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+
+        setTimeout(function () {
+            form.remove();
+        }, 1000);
+    }
+
     function openBatchMap(finalCodes) {
 
         const codes = [];
@@ -225,39 +254,8 @@ function createPrintBatchButton(){
             return;
         }
 
-        const csv = codes.join(",");
-
-        // Keep shorter batches readable/shareable with GET.
-        // Switch to POST before the query string gets too large.
-        if (csv.length <= 1200) {
-            const mapWin = window.open(
-                "map_batch.php?code=" + encodeURIComponent(csv),
-                "_blank"
-            );
-
-            if (!mapWin) {
-                alert("Popup blocked.");
-            }
-            return;
-        }
-
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "map_batch.php";
-        form.target = "_blank";
-        form.style.display = "none";
-
-        const input = document.createElement("textarea");
-        input.name = "code";
-        input.value = csv;
-
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-
-        setTimeout(() => {
-            form.remove();
-        }, 1000);
+        // Always POST → server generates short-link token → redirects to ?t=...
+        postBatchAction("map_batch.php", { code: codes.join(",") }, "_blank");
     }
 
     // Create button
@@ -366,25 +364,12 @@ function createPrintBatchButton(){
 
             modal.remove();
 
-            // Create POST form (optimized for 10,000+ codes)
-            const form = document.createElement("form");
-            form.method = "POST";
-            form.action = "printbatch.php";
-            form.target = "_blank";
-            form.style.display = "none";
-
-            const input = document.createElement("textarea");
-            input.name = "code";
-            input.value = finalCodes.join(",");
-
-            form.appendChild(input);
-            document.body.appendChild(form);
-
-            form.submit();
-
-            setTimeout(() => {
-                form.remove();
-            }, 1000);
+            // Always POST → server generates short-link token → redirects to ?t=...
+            postBatchAction(
+                "printbatch.php",
+                { code: finalCodes.join(",") },
+                "_blank"
+            );
         };
     };
 
